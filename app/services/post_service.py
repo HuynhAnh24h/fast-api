@@ -1,19 +1,29 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models.post import Post
+from app.models.category import Category
 
 # Service layer for Post operations
-def create_post(db: Session, title: str, content: str):
-    if not title or not content:
-        raise ValueError("Title and content are required")
-    try:
-        post = Post(title=title, content=content)
-        db.add(post)
-        db.commit()
-        db.refresh(post)
-        return post
-    except Exception:
-        db.rollback()
-        raise
+def create_post(db: Session, title: str, content: str, category_id: int):
+    category = db.query(Category).filter(Category.id == category_id).first()
+    if category is not None:
+
+        if not title or not content:
+            raise ValueError("Title and content are required")
+        postName = db.query(Post).filter(Post.title == title).first()
+        if postName is not None:
+            raise HTTPException(status_code=404, detail="Title post is Used")
+        try:
+            post = Post(title=title, content=content, category_id=category_id)
+            db.add(post)
+            db.commit()
+            db.refresh(post)
+            return post
+        except Exception:
+            db.rollback()
+            raise
+    else:
+        raise HTTPException(status_code=403, detail="Category is null")
 
 # Service function to retrieve all posts
 def get_post(db: Session):

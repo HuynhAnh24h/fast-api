@@ -10,7 +10,7 @@ router = APIRouter()
 # Create new Post
 @router.post("/")
 def create(post: PostCreate, db: Session = Depends(get_db)):
-    return create_post(db, post.title, post.content)
+    return create_post(db, post.title, post.content, post.category_id)
 
 # Get all posts
 @router.get("/")
